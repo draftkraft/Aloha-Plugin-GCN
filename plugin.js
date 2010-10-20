@@ -1107,6 +1107,86 @@ GENTICS.Aloha.GCN.savePage = function (data) {
 };
 
 /**
+ * Deletes the current page
+ * @param data might contain the following settings
+ * - onsuccess: handler function for deletion success
+ * - onfailure: handler function for deletion failure
+ * @param confirmed OPTIONAL wheter the user has confirmed deletion. 
+ * will trigger a confirmation dialog if undefined or false
+ */
+GENTICS.Aloha.GCN.deletePage = function (data, confirmed) {
+	if (!confirmed) {
+		var that = this;
+		GENTICS.Aloha.showMessage(new GENTICS.Aloha.Message({
+			title : GENTICS.Aloha.i18n(that, 'confirm.delete.title'),
+			text : GENTICS.Aloha.i18n(that, 'confirm.delete'),
+			type : GENTICS.Aloha.Message.Type.CONFIRM,
+			callback : function (confirm) {
+				if (confirm == "yes") {
+					that.deletePage(data, true);
+				}
+			}
+		}));
+		return;
+	}
+	
+	if (typeof data.onsuccess == 'undefined') {
+		data.onsuccess = function () {};
+	}
+	if (typeof data.onfailure == 'undefined') {
+		data.onfailure = function () {};
+	}
+	// make an API call to the REST API for deleting the page
+	this.performRESTRequest({
+		'url' : this.settings.stag_prefix + this.restUrl + '/page/delete/' + this.settings.id,
+		'success' : data.onsuccess,
+		'error' : data.onfailure
+ 	});
+};
+
+/**
+ * Deletes a folder 
+ * @param data might contain the following settings
+ * - id: folder id
+ * - onsuccess (optional): handler function for deletion success
+ * - onfailure (optional): handler function for deletion failure
+ * @param confirmed OPTIONAL wheter the user has confirmed deletion. 
+ * will trigger a confirmation dialog if undefined or false
+ */
+GENTICS.Aloha.GCN.deleteFolder = function (data, confirmed) {
+	if (!data.id) {
+		return false;
+	}
+	if (!confirmed) {
+		var that = this;
+		GENTICS.Aloha.showMessage(new GENTICS.Aloha.Message({
+			title : GENTICS.Aloha.i18n(that, 'confirm.delete.title'),
+			text : GENTICS.Aloha.i18n(that, 'confirm.deletefolder'),
+			type : GENTICS.Aloha.Message.Type.CONFIRM,
+			callback : function (confirm) {
+				if (confirm == "yes") {
+					that.deleteFolder(data, true);
+				}
+			}
+		}));
+		return false;
+	}
+	
+	if (typeof data.onsuccess == 'undefined') {
+		data.onsuccess = function () {};
+	}
+	if (typeof data.onfailure == 'undefined') {
+		data.onfailure = function () {};
+	}
+	// delete the folder
+	this.performRESTRequest({
+		'url' : this.settings.stag_prefix + this.restUrl + '/folder/delete/' + data.id,
+		'success' : data.onsuccess,
+		'error' : data.onfailure
+ 	});
+};
+
+/**
  * publishes the current page
  * @param success success handler, if none given, the publish request will not be done as AJAX request
  * @return void
