@@ -1145,6 +1145,21 @@ GENTICS.Aloha.GCN.deletePage = function (data, confirmed) {
 };
 
 /**
+ * creates a folder
+ */
+GENTICS.Aloha.GCN.createFolder = function (data) {
+	if (typeof data.onsuccess == 'undefined') {
+		data.onsuccess = function () {};
+	}
+	if (typeof data.onfailure == 'undefined') {
+		data.onfailure = function () {};
+	}
+	
+	data.url = this.settings.stag_prefix + this.restUrl + '/folder/create/';
+	this.performRESTRequest(data);
+};
+
+/**
  * Deletes a folder 
  * @param data might contain the following settings
  * - id: folder id
