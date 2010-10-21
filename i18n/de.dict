@@ -18,3 +18,6 @@ restcall.createtag.error = Beim Erstellen eines neuen Tags ist ein Fehler aufget
 restcall.reloadtag.error = Beim Aktualisieren eines Tags ist ein Fehler aufgetreten!
 confirm.editable.modified = Die Seite wurde geändert! Möchten Sie die Änderungen jetzt speichern?
 save.progress = Bitte warten, Änderungen werden gespeichert!
+confirm.delete.title=Bestätigen
+confirm.delete=Wollen Sie diese Seite löschen?
+confirm.delete=Wollen Sie diesen Menüeintrag löschen?

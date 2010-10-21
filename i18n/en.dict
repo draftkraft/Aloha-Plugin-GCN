@@ -18,3 +18,6 @@ restcall.createtag.error = An error occurred while creating a new tag!
 restcall.reloadtag.error = An error occurred while reloading a tag!
 confirm.editable.modified = The page has been modified! Do you want to save the changes now?
 save.progress = Please wait while changes are saved!
+confirm.delete.title=Confirm
+confirm.delete=Do you really want to delete this page?
+confirm.delete=Do you really want to delete this folder?
