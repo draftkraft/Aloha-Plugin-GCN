@@ -607,7 +607,7 @@ GENTICS.Aloha.GCN.alohaBlocks = function (blocks) {
 		jQuery.each(blocks, function(index, block) {
 			if (!that.isMagicLinkBlock(block)) {
 				jQuery('#' + block.id).addClass('GENTICS_block').attr(
-						'contenteditable', false);
+						'contentEditable', false);
 
 				// add the edit icon for the block
 				if (!GENTICS.Aloha.settings.readonly) {
