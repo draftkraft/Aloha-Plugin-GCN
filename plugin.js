@@ -947,7 +947,7 @@ GENTICS.Aloha.GCN.savePage = function (data) {
 
 	// construct the save request object, first with the meta information
 	var requestBody = {
-		'unlock' : data.closeAfterSave ? true : false,
+		'unlock' : data.unlock ? true : false,
 		'page' : {
 			'id' : this.settings.id,
 			'templateId' : this.settings.templateId,
