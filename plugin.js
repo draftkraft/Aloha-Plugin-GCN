@@ -1148,11 +1148,11 @@ GENTICS.Aloha.GCN.deletePage = function (data, confirmed) {
  * creates a folder
  */
 GENTICS.Aloha.GCN.createFolder = function (data) {
-	if (typeof data.onsuccess == 'undefined') {
-		data.onsuccess = function () {};
+	if (typeof data.success == 'undefined') {
+		data.success = function () {};
 	}
-	if (typeof data.onfailure == 'undefined') {
-		data.onfailure = function () {};
+	if (typeof data.failure == 'undefined') {
+		data.failure = function () {};
 	}
 	
 	data.url = this.settings.stag_prefix + this.restUrl + '/folder/create/';
