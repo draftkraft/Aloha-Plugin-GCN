@@ -607,7 +607,7 @@ GENTICS.Aloha.GCN.alohaBlocks = function (blocks) {
 		jQuery.each(blocks, function(index, block) {
 			if (!that.isMagicLinkBlock(block)) {
 				jQuery('#' + block.id).addClass('GENTICS_block').attr(
-						'contenteditable', false);
+						'contentEditable', false);
 
 				// add the edit icon for the block
 				if (!GENTICS.Aloha.settings.readonly) {
@@ -947,7 +947,7 @@ GENTICS.Aloha.GCN.savePage = function (data) {
 
 	// construct the save request object, first with the meta information
 	var requestBody = {
-		'unlock' : data.closeAfterSave ? true : false,
+		'unlock' : data.unlock ? true : false,
 		'page' : {
 			'id' : this.settings.id,
 			'templateId' : this.settings.templateId,

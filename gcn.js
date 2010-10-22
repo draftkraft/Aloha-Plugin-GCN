@@ -1,4 +1,3 @@
-
 /*!
 * Aloha Editor
 * Author & Copyright (c) 2010 Gentics Software GmbH

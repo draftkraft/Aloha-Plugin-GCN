@@ -10,6 +10,10 @@ GENTICS.Aloha.Repositories.Page = new GENTICS.Aloha.Repository('com.gentics.aloh
  * If none found it returns null.
  */
 GENTICS.Aloha.Repositories.Page.query = function( p, callback) {
+	// check whether a magiclinkconstruct exists. If not, just do nothing, since setting GCN links is not supported
+	if (!GENTICS.Aloha.GCN.settings.magiclinkconstruct) {
+		callback.call(that);
+	}
 	var that = this;
 	var params = {
 		'query' : p.queryString,
