@@ -20,4 +20,4 @@ confirm.editable.modified = The page has been modified! Do you want to save the 
 save.progress = Please wait while changes are saved!
 confirm.delete.title=Confirm
 confirm.delete=Do you really want to delete this page?
-confirm.delete=Do you really want to delete this folder?
+confirm.deletefolder=Do you really want to delete this folder?

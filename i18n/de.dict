@@ -20,4 +20,4 @@ confirm.editable.modified = Die Seite wurde geändert! Möchten Sie die Änderun
 save.progress = Bitte warten, Änderungen werden gespeichert!
 confirm.delete.title=Bestätigen
 confirm.delete=Wollen Sie diese Seite löschen?
-confirm.delete=Wollen Sie diesen Menüeintrag löschen?
+confirm.deletefolder=Wollen Sie diesen Menüeintrag löschen?
