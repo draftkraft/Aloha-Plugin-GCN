@@ -21,3 +21,4 @@ save.progress = Please wait while changes are saved!
 confirm.delete.title=Confirm
 confirm.delete=Do you really want to delete this page?
 confirm.deletefolder=Do you really want to delete this folder?
+confirm.editable.modified=You have unsaved changes. Do you want to save now?
