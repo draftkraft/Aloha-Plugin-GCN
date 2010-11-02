@@ -1465,7 +1465,8 @@ GENTICS.Aloha.GCN.openTagFill = function(tagid) {
 			'id' : tagid,
 			'type' : 'page',
 			'keepsid' : 1,
-			'backparam' : tagfillBackParam
+			'backparam' : tagfillBackParam,
+			'FOLDER_ID' : this.settings.folderId
 		}
 	});
 
