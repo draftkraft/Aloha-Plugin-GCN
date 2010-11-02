@@ -27,7 +27,7 @@ GENTICS.Aloha.GCN.buttons = {};
 /**
  * this stores the last active editable since we disable all editables when a lightbox opens. We can use this property to reactivate the last active editable 
  */
-GENTICS.Aloha.GCN.lastActiveEditable = {};
+GENTICS.Aloha.GCN.lastActiveEditable = undefined;
 
 /**
  * base url for the GCN backend
