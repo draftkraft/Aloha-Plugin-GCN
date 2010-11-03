@@ -1403,15 +1403,22 @@ GENTICS.Aloha.GCN.openGCNURL = function (data) {
 		this.normalizeEditFrame();
 	}
 
-	this.openURL(url, popup);
+	this.openURL(url, popup ? 'popup' : undefined);
 };
 
 /**
- * Open the given URL in the editor frame or a popup. Check for modifications first, and if found, save the page first
- * @param url url to be opened
- * @param popup true when the url shall be opened in a popup, false if not (default)
+ * Open the given URL in the editor frame or a popup. Check for modifications
+ * first, and if found, save the page first
+ * 
+ * @param url
+ *            url to be opened
+ * @param where
+ *            defines, where the url shall be opened. possible values: 'popup'
+ *            when the url shall be opened in a popup or 'parent' when the url
+ *            shall be opened in the parent. If not given, the url is opened in
+ *            the current frame
  */
-GENTICS.Aloha.GCN.openURL = function (url, popup) {
+GENTICS.Aloha.GCN.openURL = function (url, where) {
 	// check whether something was changed, if yes
 	if (GENTICS.Aloha.isModified()) {
 		this.savePage({
@@ -1421,8 +1428,10 @@ GENTICS.Aloha.GCN.openURL = function (url, popup) {
 					this.log('debug', 'opening url: ' + url);
 				}
 
-				if (popup) {
+				if (where == 'popup') {
 					window.open(url);
+				} else if (where == 'parent' && parent) {
+					parent.location.href = url;
 				} else {
 					document.location.href = url;
 				}
@@ -1434,8 +1443,10 @@ GENTICS.Aloha.GCN.openURL = function (url, popup) {
 		if (GENTICS.Aloha.Log.isDebugEnabled()) {
 			this.log('debug', 'opening url: ' + url);
 		}
-		if (popup) {
+		if (where == 'popup') {
 			window.open(url);
+		} else if (where == 'parent' && parent) {
+			parent.location.href = url;
 		} else {
 			document.location.href = url;
 		}
@@ -1743,5 +1754,9 @@ GENTICS.Aloha.GCN.restoreAlohaElements = function () {
  * @return void
  */
 function cn3_go_list(url) {
-	GENTICS.Aloha.GCN.openURL(url);
+	var where = undefined;
+	if (top && top.main && top.main.list && parent && parent == top.main.list) {
+		where = 'parent';
+	}
+	GENTICS.Aloha.GCN.openURL(url, where);
 }
