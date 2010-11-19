@@ -196,7 +196,9 @@ GENTICS.Aloha.GCN.init = function () {
 	});
 
 	// Activate editables
-	this.alohaEditables(this.settings.editables);
+	GENTICS.Aloha.EventRegistry.subscribe(GENTICS.Aloha, "ready", function () {
+		that.alohaEditables(that.settings.editables);
+	});
 
 	// Make blocks not editable
 	this.alohaBlocks(this.settings.blocks);
@@ -584,17 +586,15 @@ GENTICS.Aloha.GCN.init = function () {
  * @param editables
  */
 GENTICS.Aloha.GCN.alohaEditables = function (editables) {
-	GENTICS.Aloha.EventRegistry.subscribe(GENTICS.Aloha, "ready", function () {
-		if (editables) {
-			jQuery.each(editables, function(index, editable) {
-				jQuery("#" + editable.id).aloha();
-				if (editable.readonly) {
-					// disable readonly editables
-					GENTICS.Aloha.editables[(GENTICS.Aloha.editables.length - 1)].disable();
-				}
-			});
-		}	
-	});
+	if (editables) {
+		jQuery.each(editables, function(index, editable) {
+			jQuery("#" + editable.id).aloha();
+			if (editable.readonly) {
+				// disable readonly editables
+				GENTICS.Aloha.editables[(GENTICS.Aloha.editables.length - 1)].disable();
+			}
+		});
+	}
 };
 
 /**
