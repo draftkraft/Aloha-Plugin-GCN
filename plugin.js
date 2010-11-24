@@ -1658,7 +1658,9 @@ GENTICS.Aloha.GCN.handleBlock = function(data, insert) {
 	// insert the new tag code into the currently active editable
 	if (insert) {
 		// insert at current cursor position
-		GENTICS.Utils.Dom.insertIntoDOM(jQuery(data.content), GENTICS.Aloha.Selection.getRangeObject(), jQuery(GENTICS.Aloha.activeEditable.obj));
+		var selection = GENTICS.Aloha.Selection.getRangeObject();
+		var limit = selection.getCommonAncestorContainer();
+		GENTICS.Utils.Dom.insertIntoDOM(jQuery(data.content), GENTICS.Aloha.Selection.getRangeObject(), limit ? jQuery(limit) : null);
 	}
 
 	// Activate editables
