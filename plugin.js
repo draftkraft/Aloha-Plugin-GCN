@@ -1524,12 +1524,18 @@ GENTICS.Aloha.GCN.createTag = function(constructId, async, success) {
 		async = true;
 	}
 
+	// get the current selection
+	var selection = GENTICS.Aloha.Selection.getRangeObject();
+
 	// make an API call to the REST API for creating a new tag
 	this.performRESTRequest( {
 		'url' : this.settings.stag_prefix + this.restUrl + '/page/newtag/'
 				+ this.settings.id,
 		'params' : {
 			'constructId' : constructId
+		},
+		'body' : {
+			magicValue : selection.getText()
 		},
 		'description' : 'restcall.createtag',
 		'success' : function (data) {
@@ -1659,6 +1665,9 @@ GENTICS.Aloha.GCN.handleBlock = function(data, insert) {
 	if (insert) {
 		// insert at current cursor position
 		var selection = GENTICS.Aloha.Selection.getRangeObject();
+		if (!selection.isCollapsed()) {
+			GENTICS.Aloha.Markup.removeSelectedMarkup();
+		}
 		var limit = selection.getCommonAncestorContainer();
 		GENTICS.Utils.Dom.insertIntoDOM(jQuery(data.content), GENTICS.Aloha.Selection.getRangeObject(), limit ? jQuery(limit) : null);
 	}
