@@ -1669,7 +1669,9 @@ GENTICS.Aloha.GCN.handleBlock = function(data, insert) {
 			GENTICS.Aloha.Markup.removeSelectedMarkup();
 		}
 		var limit = selection.getCommonAncestorContainer();
-		GENTICS.Utils.Dom.insertIntoDOM(jQuery(data.content), GENTICS.Aloha.Selection.getRangeObject(), limit ? jQuery(limit) : null);
+		if (!GENTICS.Utils.Dom.insertIntoDOM(jQuery(data.content), GENTICS.Aloha.Selection.getRangeObject(), limit ? jQuery(limit) : null)) {
+			this.log('error', 'Could not insert new tag');
+		}
 	}
 
 	// Activate editables
@@ -1771,4 +1773,13 @@ function cn3_go_list(url) {
 		where = 'parent';
 	}
 	GENTICS.Aloha.GCN.openURL(url, where);
+}
+
+/**
+ * And another ugly integration of "autosave", when URL is opened in new window
+ * @param url url to show in new window
+ * @return void
+ */
+function cn3_go_openwindow(url) {
+	GENTICS.Aloha.GCN.openURL(url, 'popup');
 }
