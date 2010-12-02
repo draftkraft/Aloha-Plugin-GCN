@@ -985,7 +985,7 @@ GENTICS.Aloha.GCN.savePage = function (data) {
 			// get the contents of the editable (blocks will already be replaced by <span> tags
 			var content = editable.getContents();
 			// now replace the <span> tags to <node> tags
-			content = content.replace(/<span class=\"GENTICS_block\" id=\"(\w+)\">x<\/span>/g, '<node $1>');
+			content = content.replace(/<span id=\"?GENTICS_block_(\w+)\"?>x<\/span>/gi, '<node $1>');
 			// handle editables of meta attributes like page.name
 			if (gcnEditable.metaproperty) {
 				// only page properties are supportet at this time
@@ -1302,7 +1302,7 @@ GENTICS.Aloha.GCN.makeClean = function (obj) {
 	// replace by <node tags>
 	if (this.settings.blocks) {
 		jQuery.each(this.settings.blocks, function(index, block) {
-			obj.find('#' + block.id).replaceWith('<span class="GENTICS_block" id="' + block.tagname + '">x</span>');
+			obj.find('#' + block.id).replaceWith('<span id="GENTICS_block_' + block.tagname + '">x</span>');
 		});
 	}
 };
