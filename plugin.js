@@ -1669,7 +1669,7 @@ GENTICS.Aloha.GCN.handleBlock = function(data, insert) {
 			GENTICS.Aloha.Markup.removeSelectedMarkup();
 		}
 		var limit = selection.getCommonAncestorContainer();
-		if (!GENTICS.Utils.Dom.insertIntoDOM(jQuery(data.content), GENTICS.Aloha.Selection.getRangeObject(), limit ? jQuery(limit) : null)) {
+		if (!GENTICS.Utils.Dom.insertIntoDOM(jQuery(data.content), GENTICS.Aloha.Selection.getRangeObject(), limit ? jQuery(limit) : null, false, true)) {
 			this.log('error', 'Could not insert new tag');
 		}
 	}
