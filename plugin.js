@@ -579,6 +579,19 @@ GENTICS.Aloha.GCN.init = function () {
 	GENTICS.Aloha.EventRegistry.subscribe(GENTICS.Aloha, "editableActivated", function () {
 		jQuery('.GENTICS_editicon').fadeOut('normal');
 	});
+
+	GENTICS.Aloha.EventRegistry.subscribe(GENTICS.Aloha, "ready", function () {
+		// register CropNResize callbacks if the extension is available
+		if (typeof GENTICS.Aloha.CropNResize == "object") {
+			GENTICS.Aloha.CropNResize.onResized = function (image) {
+				that.cnrOnResized(image);
+			};
+			GENTICS.Aloha.CropNResize.onCropped = function (image, props) {
+				that.cnrOnCropped(image, props);
+			};
+		}
+	});
+
 };
 
 /**
@@ -1757,6 +1770,162 @@ GENTICS.Aloha.GCN.restoreAlohaElements = function () {
 		this.lastActiveEditable.obj.focus();
 		this.lastActiveEditable = undefined;
 	}
+};
+
+/**
+ * +++ CropAndResize plugin integration +++
+ */
+/**
+ * resize callback integration for CropNResize plugin
+ * @param image reference to the image that has been resized
+ */
+GENTICS.Aloha.GCN.cnrOnResized = function (image) {
+	var info = this.cnrAnalyzeImage(image);
+	var oImg = new Image(); // the original image will be created again to determine it's original size
+	
+	// the image was previously resized or cropped, so keep the parameters from the info 
+	if (info) {
+		oImg.src = info.src;
+	} else {
+		// generate new image info
+		oImg.src = image.attr('src');
+		info = {
+			x : 0, // x-pos of crop
+			y : 0, // y-pos of crop
+			cw : oImg.width, // crop width
+			ch : oImg.height, // crop height
+			src : oImg.src // image source			
+		};
+	}
+
+	// now set the resize options
+	info.w = image.width();
+	info.h = image.height();
+	
+	image.attr('src', this.cnrURL(info));
+};
+
+/**
+ * crop callback integration for CropNResize plugin
+ * @param image reference to the image that has been resized
+ * @param props cropping properties
+ */
+GENTICS.Aloha.GCN.cnrOnCropped = function (image, props) {
+	var info = this.cnrAnalyzeImage(image);
+	var oImg = new Image(); // the original image will be created again to determine it's original size
+	
+	// the image was previously resized or cropped, so keep the parameters from the info 
+	if (info) {
+		oImg.src = info.src;
+	} else {
+		// generate new image info
+		oImg.src = image.attr('src');
+		info = {
+			x : 0, // x-pos of crop
+			y : 0, // y-pos of crop
+			cw : oImg.width, // crop width
+			ch : oImg.height, // crop height
+			src : oImg.src // image source			
+		};
+	}
+
+	// now set the resize options
+	info.w = image.width();
+	info.h = image.height();
+	
+	image.attr('src', this.cnrURL(info));
+	
+	// if the image has already been resized things are getting interesting
+	// we have to scale the current crop area up to the whole image size
+	// and then re-apply the scaling
+	
+	/*image.attr('src',
+		'/GenticsImageStore/' +
+		image.width() + '/' +
+		image.height() + '/' +
+		'cropandresize/force/' +
+		props.x + '/' +
+		props.y + '/' +
+		props.w + '/' +
+		props.h + '/' +
+		image.get(0).src
+	)*/
+	.width(props.w)
+	.height(props.h);
+};
+
+/**
+ * analyze image for previous GenticsImageStore crop or resize actions
+ * @param image jQuery image object to be analyzed
+ * @return false if no GenticsImageStore cropandresize URL was detected
+ * 	or an object containing all of the detected properties:
+ * 	{
+ * 		prefix : '/GenticsImageStore', // the prefix of the GenticsImageStore URL 
+ * 		w : 400, // resize width
+ * 		h : 300, // resize height
+ * 		x : 10, // x-pos of crop
+ *		y : 10, // y-pos of crop
+ *		cw : 200, // crop width
+ *		ch : 150, // crop height
+ *		src : 'http://...' // original image source
+ * 	}
+ */
+GENTICS.Aloha.GCN.cnrAnalyzeImage = function (image) {
+	var m = image.attr('src')
+		.match(/(.+GenticsImageStore)\/(\d+)\/(\d+)\/cropandresize\/force\/(\d+)\/(\d+)\/(\d+)\/(\d+)\/(.+)/);
+	if (m) {
+		return {
+			prefix : m[1],
+			w : m[2], // resize width
+			h : m[3], // resize height
+			x : m[4], // x-pos of crop
+			y : m[5], // y-pos of crop
+			cw : m[6], // crop width
+			ch : m[7], // crop height
+			src : m[8] // image source
+		};
+	} else {
+		return false;
+	}
+};
+
+/**
+ * Generate a GenticsImageStore cropandresize URL
+ * URLs have to be generated this way to prevent nesting of GenticsImageStore calls in URLs
+ * 
+ * A GenticsImageStore URL looks like:
+ * http://SERVER/GenticsImageStore
+ * /300 - width
+ * /200 - height
+ * /cropandresize - mode
+ * /force - resizemode
+ * /20 - crop start left
+ * /20 - crop start top
+ * /100 - crop width
+ * /100 - crop height
+ * /http://dev42.office:91/node_5_stable/?sid=hXjD3HoJN31Bnam&time=1293543192&do=16000&id=214&keepsid=1 - img url
+ * 
+ * @param props object with crop and resize properties, eg:
+ * {
+ * 		w : 400, // resize width
+ * 		h : 300, // resize height
+ * 		x : 10, // x-pos of crop
+ *		y : 10, // y-pos of crop
+ *		cw : 200, // crop width
+ *		ch : 150, // crop height
+ *		src : 'http://...' // original image source
+ * }
+ */
+GENTICS.Aloha.GCN.cnrURL = function (p) {
+	return '/GenticsImageStore/' + 
+		p.w + '/' +
+		p.h + '/' +
+		'cropandresize/force/' +
+		p.x + '/' +
+		p.y + '/' +
+		p.cw + '/' +
+		p.ch + '/' +
+		p.src;
 };
 
 /**
