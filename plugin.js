@@ -1817,41 +1817,47 @@ GENTICS.Aloha.GCN.cnrOnCropped = function (image, props) {
 	// the image was previously resized or cropped, so keep the parameters from the info 
 	if (info) {
 		oImg.src = info.src;
+		
+		// determine scaling factor
+		// if the image has been scaled BEFORE cropping a x- and y-scaling factor needs
+		// to be determined to recalculate x- and y- positions located on an unscaled image
+		var sfX = 1; // scaling factor for the x-axis
+		var sfY = 1; // an for y
+		if (info.w != info.cw) {
+			sfX = info.cw / info.w;
+		}
+		if (info.h != info.ch) {
+			sfY = info.ch / info.h;
+		}
+		
+		// as the image has already been resized or cropped before,
+		// things are getting interesting here
+		// first we have to correct the x- and y-pos of the crop
+		info.x = info.x + parseInt(props.x * sfX);
+		info.y = info.y + parseInt(props.y * sfY);
+		
+		// then we have to scale the current crop area up to the
+		// whole image size and then re-apply the scaling
+		info.cw = parseInt(props.w * sfX);
+		info.ch = parseInt(props.h * sfY);
 	} else {
-		// generate new image info
 		oImg.src = image.attr('src');
 		info = {
-			x : 0, // x-pos of crop
-			y : 0, // y-pos of crop
-			cw : oImg.width, // crop width
-			ch : oImg.height, // crop height
+			x : props.x, // x-pos of crop
+			y : props.y, // y-pos of crop
+			cw : props.w, // crop width
+			ch : props.h, // crop height
 			src : oImg.src // image source			
 		};
 	}
 
 	// now set the resize options
-	info.w = image.width();
-	info.h = image.height();
+	info.w = props.w; // image.width();
+	info.h = props.h; // image.height();
 	
-	image.attr('src', this.cnrURL(info));
-	
-	// if the image has already been resized things are getting interesting
-	// we have to scale the current crop area up to the whole image size
-	// and then re-apply the scaling
-	
-	/*image.attr('src',
-		'/GenticsImageStore/' +
-		image.width() + '/' +
-		image.height() + '/' +
-		'cropandresize/force/' +
-		props.x + '/' +
-		props.y + '/' +
-		props.w + '/' +
-		props.h + '/' +
-		image.get(0).src
-	)*/
-	.width(props.w)
-	.height(props.h);
+	image.attr('src', this.cnrURL(info))
+		.width(props.w)
+		.height(props.h);
 };
 
 /**
@@ -1876,12 +1882,12 @@ GENTICS.Aloha.GCN.cnrAnalyzeImage = function (image) {
 	if (m) {
 		return {
 			prefix : m[1],
-			w : m[2], // resize width
-			h : m[3], // resize height
-			x : m[4], // x-pos of crop
-			y : m[5], // y-pos of crop
-			cw : m[6], // crop width
-			ch : m[7], // crop height
+			w : parseInt(m[2]), // resize width
+			h : parseInt(m[3]), // resize height
+			x : parseInt(m[4]), // x-pos of crop
+			y : parseInt(m[5]), // y-pos of crop
+			cw : parseInt(m[6]), // crop width
+			ch : parseInt(m[7]), // crop height
 			src : m[8] // image source
 		};
 	} else {
