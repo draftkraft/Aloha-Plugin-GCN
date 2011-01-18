@@ -589,6 +589,9 @@ GENTICS.Aloha.GCN.init = function () {
 			GENTICS.Aloha.CropNResize.onCropped = function (image, props) {
 				that.cnrOnCropped(image, props);
 			};
+			GENTICS.Aloha.CropNResize.onReset = function (image) {
+				that.cnrOnReset(image);
+			};
 		}
 	});
 
@@ -666,6 +669,18 @@ GENTICS.Aloha.GCN.alohaBlocks = function (blocks) {
  */
 GENTICS.Aloha.GCN.isMagicLinkBlock = function(block) {
 	return block.tagname.substring(0, 16) == "gtxalohapagelink";
+};
+
+/**
+ * Check whether the given block is a magic image block. "magic"
+ * refers to being able to resize and crop 
+ * 
+ * @param block
+ *            block to check
+ * @return true if the block is a magic image block, false if not
+ */
+GENTICS.Aloha.GCN.isMagicImageBlock = function(block) {
+	return block.tagname.substring(0, 13) == "gtxalohaimage";
 };
 
 /**
@@ -1028,9 +1043,9 @@ GENTICS.Aloha.GCN.savePage = function (data) {
 		}
 	}
 
-	// go through all blocks, find the magic link blocks and add as tags to the
 	// save request
 	if (this.settings.blocks) {
+		// go through all blocks, find the magic link blocks and add as tags to the
 		jQuery.each(this.settings.blocks, function(index, block) {
 			if (that.isMagicLinkBlock(block)) {
 				requestBody.page.tags[block.tagname] = {
@@ -1052,7 +1067,38 @@ GENTICS.Aloha.GCN.savePage = function (data) {
 					}
 				};
 			}
+			
+			// also check for magic images (resizable ones)
+			if (that.isMagicImageBlock(block)) {
+				var info = that.cnrAnalyzeImage(
+						jQuery('#' + block.id + ' img[data-gentics-aloha-repository]')
+						.first());
+				if (info) {
+					info.src = ''; // overwrite src so we can generate a gis-url for the gisprefix
+					requestBody.page.tags[block.tagname] = {
+						'name' : block.tagname,
+						'active' : true,
+						'properties' : {
+							'url' : {
+								'type' : 'IMAGE',
+								'imageId' : info.id
+							},
+							'gisprefix' : {
+								'type' : 'STRING',
+								'stringValue' : that.cnrURL(info)
+							}
+						}
+					};
+				}
+			}
 		});
+		
+		// also add ImageStoreImages to the request
+//		jQuery('img[data-gentics-aloha-repository="com.gentics.aloha.GCN.Image"]').each(function() {
+//			var img = jQuery(this);
+//			var info = that.analyzeImage(img);
+//			//requestBody.page.tags
+//		});
 	}
 
 	var onsuccess = data ? data.onsuccess : undefined;
@@ -1772,9 +1818,26 @@ GENTICS.Aloha.GCN.restoreAlohaElements = function () {
 	}
 };
 
-/**
+/*
  * +++ CropAndResize plugin integration +++
  */
+/**
+ * reset callback integration for CropNResize plugin
+ * @param image reference to the image that has been resized
+ */
+GENTICS.Aloha.GCN.cnrOnReset = function (image) {
+	var info = this.cnrAnalyzeImage(image);
+	if (info) {
+		var oImg = new Image(); // the original image will be created again to determine it's original size
+		oImg.src = info.src;
+		image.width(oImg.width);
+		image.height(oImg.height);
+		image.attr('src', info.src);
+		return true; // we applied our reset, so return true
+	} else {
+		return false; // no reset has been applied, so let the CropNResize plugin handle this 
+	}
+};
 /**
  * resize callback integration for CropNResize plugin
  * @param image reference to the image that has been resized
@@ -1873,7 +1936,9 @@ GENTICS.Aloha.GCN.cnrOnCropped = function (image, props) {
  *		y : 10, // y-pos of crop
  *		cw : 200, // crop width
  *		ch : 150, // crop height
- *		src : 'http://...' // original image source
+ *		src : 'http://...', // original image source
+ *		id : 15, // GCN image id
+ *		repository : "com.gentics.aloha.GCN.Image" // repository the image was taken from
  * 	}
  */
 GENTICS.Aloha.GCN.cnrAnalyzeImage = function (image) {
@@ -1888,7 +1953,9 @@ GENTICS.Aloha.GCN.cnrAnalyzeImage = function (image) {
 			y : parseInt(m[5]), // y-pos of crop
 			cw : parseInt(m[6]), // crop width
 			ch : parseInt(m[7]), // crop height
-			src : m[8] // image source
+			src : m[8], // image source
+			id : parseInt(image.attr('data-gentics-aloha-object-id')), // gcn5's id for this image
+			repository : image.attr('data-gentics-aloha-repository') // the corresponding repository
 		};
 	} else {
 		return false;
