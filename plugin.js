@@ -1720,6 +1720,11 @@ GENTICS.Aloha.GCN.handleBlock = function(data, insert) {
 	// find occurrances of the block and replace the html code
 	jQuery('#' + blockObj.attr('id')).replaceWith( data.content );
 
+	// re-attach cropnresize functions
+	if (GENTICS.Aloha.CropNResize) {
+		GENTICS.Aloha.CropNResize.attach('#' + blockObj.attr('id'));
+	}
+	
 	// insert the new tag code into the currently active editable
 	if (insert) {
 		// insert at current cursor position
