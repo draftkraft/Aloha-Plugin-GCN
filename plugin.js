@@ -899,13 +899,7 @@ GENTICS.Aloha.GCN.quitEdit = function() {
 				}
 			});
 		} else {
-			that.openGCNURL({
-				'url' : that.settings.stag_prefix,
-				'params' : {
-					'do' : 14300,
-					'close' : true
-				}
-			});
+                        top.window.close();
 		}
 	});
 };
