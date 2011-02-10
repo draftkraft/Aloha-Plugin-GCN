@@ -1753,6 +1753,11 @@ GENTICS.Aloha.GCN.handleBlock = function(data, insert) {
 		}
 		this.alohaBlocks(data.blocks);
 	}
+	
+	// the block has been handled, so trigger an event
+	GENTICS.Aloha.EventRegistry.trigger(
+		new GENTICS.Aloha.Event("blockHandled", GENTICS.Aloha.GCN, blockObj)
+	);
 };
 
 /**
