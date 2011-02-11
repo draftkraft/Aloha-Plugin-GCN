@@ -1716,7 +1716,11 @@ GENTICS.Aloha.GCN.handleBlock = function(data, insert) {
 
 	// re-attach cropnresize functions
 	if (GENTICS.Aloha.CropNResize) {
-		GENTICS.Aloha.CropNResize.attach('#' + blockObj.attr('id'));
+		GENTICS.Aloha.CropNResize.attach('#' 
+			+ blockObj.attr('id')
+			+ ' '
+			+ GENTICS.Aloha.CropNResize.settings.selector
+		);
 	}
 	
 	// insert the new tag code into the currently active editable
