@@ -32,12 +32,12 @@ GENTICS.Aloha.GCN.lastActiveEditable = undefined;
 /**
  * base url for the GCN backend
  */
-GENTICS.Aloha.GCN.backendUrl = '../CNPortletapp/';
+GENTICS.Aloha.GCN.backendUrl = '../CNPortletapp';
 
 /**
  * base url for the REST API
  */
-GENTICS.Aloha.GCN.restUrl = GENTICS.Aloha.GCN.backendUrl + 'rest';
+GENTICS.Aloha.GCN.restUrl = GENTICS.Aloha.GCN.backendUrl + '/rest';
 
 /**
  * Closes a current active lightbox
