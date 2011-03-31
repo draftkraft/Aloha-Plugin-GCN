@@ -158,7 +158,8 @@ GENTICS.Aloha.GCN.init = function () {
 					'MENU_LAYER' : 0,
 					'ass_pre_flapped' : 0,
 					'aloha' : true
-				}
+				},
+				'noCache': true
 			});
 		}
 		
@@ -259,7 +260,8 @@ GENTICS.Aloha.GCN.init = function () {
 						params : {
 							live : that.settings.id,
 							'do' : 14001
-						}
+						},
+						'noCache': true
 					});
 				},
 				onfailure : function ()  {
@@ -286,7 +288,8 @@ GENTICS.Aloha.GCN.init = function () {
 					PAGE_ID : that.settings.id,
 					FOLDER_ID : that.settings.folderId,
 					back : propsBackParam
-				}
+				},
+				'noCache': true
 			});
 		}
 	}));
@@ -355,7 +358,8 @@ GENTICS.Aloha.GCN.init = function () {
 							't_type' : 10007,
 							'redo' : 14001,
 							'CONTENTGROUP_ID' : language.id
-						}
+						},
+						'noCache': true
 					});
 				}
 			}));
@@ -378,7 +382,8 @@ GENTICS.Aloha.GCN.init = function () {
 		onclick : function() {
 			that.openGCNURL({
 				url : that.settings.stag_prefix,
-				params : publishParams
+				params : publishParams,
+				noCache : true
 			});
 		}
 	}));
@@ -389,7 +394,8 @@ GENTICS.Aloha.GCN.init = function () {
 			onclick : function() {
 				that.openGCNURL({
 					url : that.settings.stag_prefix,
-					params : publishAtParams
+					params : publishAtParams,
+					noCache : true
 				});
 			}
 		}));
@@ -896,7 +902,8 @@ GENTICS.Aloha.GCN.quitEdit = function() {
 				'url' : that.settings.stag_prefix,
 				'params' : {
 					'do' : 13011
-				}
+				},
+				'noCache' : true
 			});
 		} else {
                         top.window.close();
@@ -917,7 +924,8 @@ GENTICS.Aloha.GCN.previewPage = function () {
 			language : that.settings.languageid,
 			real : 'view',
 			links : that.settings.links
-		}
+		},
+		noCache : true
 	});
 };
 
@@ -934,7 +942,8 @@ GENTICS.Aloha.GCN.editPage = function () {
 			language : that.settings.languageid,
 			real : 'edit',
 			links : that.settings.links
-		}
+		},
+		noCache : true
 	});
 };
 
@@ -1275,7 +1284,8 @@ GENTICS.Aloha.GCN.publishPage = function (success) {
 			} else {
 				that.openGCNURL({
 					url : that.settings.stag_prefix,
-					params : publishParams
+					params : publishParams,
+					noCache : true
 				});
 			}
 		},
@@ -1297,8 +1307,9 @@ GENTICS.Aloha.GCN.publishPageAt = function () {
 			var propsBackParam = that.isGCNFrame() ? '' : 'a:3:{s:4:"REDO";s:5:"14012";s:6:"realid";s:'+String(that.settings.id).length+':"'+that.settings.id+'";s:4:"real";s:4:"edit";}';	
 			var publishAtParams = that.isGCNFrame() ? {'do' : 14021} : {'do' : 14021, 'PAGE_ID' : that.settings.id, 'FOLDER_ID' : that.settings.folderId, 'back' : propsBackParam};
 			that.openGCNURL({
-					url : that.settings.stag_prefix,
-					params : publishAtParams
+				url : that.settings.stag_prefix,
+				params : publishAtParams,
+				noCache : true
 			});
 		},
 		onfailure : function ()  {
@@ -1425,11 +1436,20 @@ GENTICS.Aloha.GCN.performRESTRequest = function (data) {
  * The data may contain the following properties:
  * - url: part of the URL for the specific request after /CNPortletapp/rest, must start with / and must not contain request parameters
  * - params: additional request parameters
+ * - noCache: forces the browser to re-fetch the URL,
+ *     irrespective of any caching headers sent with an earlier response
+ *     for the same URL. This is achived by appending a timestamp. Note: a
+ *     timestamp has millisecond granularty which may not be enough.
+ *     This parameter is a hack and should not be used. Instead, the headers
+ *     of the response should indicate whether a resource can be cached or not.
  * @param data data of the new GCN URL
  * @return The created GCN URL as String
  */
 GENTICS.Aloha.GCN.createGCNURL = function (data) {
-	var url = data.url + '?sid=' + this.settings.sid + '&time=' + (new Date()).getTime();
+	var url = data.url + '?sid=' + this.settings.sid;
+	if (data.noCache) {
+		url += '&time=' + (new Date()).getTime();
+	}
 	for (var paramName in data.params) {
 		url += '&' + paramName + '=' + encodeURI(data.params[paramName]);
 	}
@@ -1443,6 +1463,7 @@ GENTICS.Aloha.GCN.createGCNURL = function (data) {
  * The data may contain the following properties:
  * - url: part of the URL for the specific request after /CNPortletapp/rest, must start with / and must not contain request parameters
  * - params: additional request parameters
+ * - noCache: see createGCNURL.
  * - popup: true when the URL shall be opened in a popup, false if not (default)
  * @param data data of the new GCN URL
  * @return void
@@ -1531,7 +1552,8 @@ GENTICS.Aloha.GCN.openTagFill = function(tagid) {
 			'keepsid' : 1,
 			'backparam' : tagfillBackParam,
 			'FOLDER_ID' : this.settings.folderId
-		}
+		},
+		'noCache': true
 	});
 
 	// check whether the page is modified
