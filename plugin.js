@@ -786,6 +786,22 @@ GENTICS.Aloha.GCN.isGCNFrame = function() {
 	if (assistant.attr('name') === 'ass') {
 		return true;
 	}
+
+	// we could also be in an iframe, so check further
+	if (!window.parent.parent) {
+		return false;
+	}
+	// check for the vertical assistant
+	var assistant = jQuery('frame', window.parent.parent.document).eq(0);
+	if (assistant.attr('name') === 'ass') {
+		return true;
+	}
+	// check for the horizontal assistant
+	assistant = jQuery('frame', window.parent.parent.document).eq(2);
+	if (assistant.attr('name') === 'ass') {
+		return true;
+	}
+
 	return false; 
 };
 
@@ -1043,6 +1059,16 @@ GENTICS.Aloha.GCN.savePage = function (data) {
 			}
 		} else {
 			// TODO we did not find the editable, what now?
+		}
+	}
+
+	// check whether the page was translated from another page
+	if (this.settings.translation_master) {
+		requestBody.page.translationStatus = {
+			'pageId' : this.settings.translation_master
+		};
+		if (this.settings.translation_version) {
+			requestBody.page.translationStatus['versionTimestamp'] = this.settings.translation_version;
 		}
 	}
 
