@@ -103,7 +103,7 @@ GENTICS.Aloha.GCN.init = function () {
 	 */
 	var maximizeOptions = null;
 	
-	if (this.isGCNFrame()) {
+	if (this.getAssistantFrame()) {
 		// we want to hide the ribbon
 		GENTICS.Aloha.settings.ribbon = false;
 
@@ -150,8 +150,8 @@ GENTICS.Aloha.GCN.init = function () {
 				}) + '"></script>');
 	
 		// update the top menu
-		if (top.menu) {
-			top.menu.location = this.createGCNURL({
+		if (top.menu && top.menu.location.href.indexOf('do=14104') < 0 && top.menu.location.href.indexOf('aloha=true') < 0 ) {
+			top.menu.location.href = this.createGCNURL({
 				'url' : this.settings.stag_prefix,
 				'params' : {
 					'do' : 14004,
@@ -275,7 +275,7 @@ GENTICS.Aloha.GCN.init = function () {
 	// this is a very ugly hack. When opened the editor in wiki mode (outside of
 	// the GCN frames), we need to provide a serialized PHP array as back
 	// parameter to the call to page properties, so that the dialog will lead us back to the wiki mode
-	var propsBackParam = this.isGCNFrame() ? '' : 'a:3:{s:4:"REDO";s:5:"14012";s:6:"realid";s:'+String(this.settings.id).length+':"'+this.settings.id+'";s:4:"real";s:4:"edit";}';
+	var propsBackParam = this.getAssistantFrame() ? '' : 'a:3:{s:4:"REDO";s:5:"14012";s:6:"realid";s:'+String(this.settings.id).length+':"'+this.settings.id+'";s:4:"real";s:4:"edit";}';
 
 	// menu button for the page properties
 	pageMenu.push(new GENTICS.Aloha.ui.Button({
@@ -295,7 +295,7 @@ GENTICS.Aloha.GCN.init = function () {
 	}));
 
 	// menu button for the object properties (only if opened within GCN frames)
-//	if (this.isGCNFrame()) {
+//	if (this.getAssistantFrame()) {
 //		pageMenu.push(new GENTICS.Aloha.ui.Button({
 //			label : this.i18n('button.objectproperties'),
 //			onclick : function() {
@@ -373,8 +373,8 @@ GENTICS.Aloha.GCN.init = function () {
 	}
 
 	// parameters to the 'publish' url depend on whether we are in the GCN frame or in wiki mode
-	var publishParams = this.isGCNFrame() ? {'do' : 14003, 'cmd' : 'pub'} : {'do' : 14012, 'realid' : this.settings.id, 'real' : 'pub'};
-	var publishAtParams = this.isGCNFrame() ? {'do' : 14021} : {'do' : 14021, 'PAGE_ID' : this.settings.id, 'FOLDER_ID' : this.settings.folderId, 'back' : propsBackParam};
+	var publishParams = this.getAssistantFrame() ? {'do' : 14003, 'cmd' : 'pub'} : {'do' : 14012, 'realid' : this.settings.id, 'real' : 'pub'};
+	var publishAtParams = this.getAssistantFrame() ? {'do' : 14021} : {'do' : 14021, 'PAGE_ID' : this.settings.id, 'FOLDER_ID' : this.settings.folderId, 'back' : propsBackParam};
 
 	var saveButtonMenu = Array();
 	saveButtonMenu.push(new GENTICS.Aloha.ui.Button({
@@ -388,7 +388,7 @@ GENTICS.Aloha.GCN.init = function () {
 		}
 	}));
 
-	if (this.isGCNFrame()) {
+	if (this.getAssistantFrame()) {
 		saveButtonMenu.push(new GENTICS.Aloha.ui.Button({
 			label : this.i18n('button.publishat'),
 			onclick : function() {
@@ -439,7 +439,7 @@ GENTICS.Aloha.GCN.init = function () {
 		GENTICS.Aloha.Ribbon.addButton(cancelButton);
 	}
 
-	if (this.isGCNFrame()) {
+	if (this.getAssistantFrame()) {
 		// Add a separator before the rest of the buttons
 //		GENTICS.Aloha.Ribbon.addSeparator();
 //		
@@ -757,7 +757,7 @@ GENTICS.Aloha.GCN.maximizeEditFrame = function() {
  * @return true if the edit frame is maximized, false otherwise
  */
 GENTICS.Aloha.GCN.isEditFrameMaximized = function () {
-	if (!this.isGCNFrame()) {
+	if (!this.getAssistantFrame()) {
 		return false;
 	}
 	if (top.document.getElementsByTagName('frameset')[0].cols == '0,*') {
@@ -768,23 +768,28 @@ GENTICS.Aloha.GCN.isEditFrameMaximized = function () {
 };
 
 /**
- * Checks if we are in a GCN frame environment.
- * 
- * @return true if we are in a gcn frame environment, false otherwise. 
+ * Get the assistant frame as jQuery object (if editor is opened in the GCN Frameset). Otherwise returns false.
+ * @return assistant frame as jQuery object or false
  */
-GENTICS.Aloha.GCN.isGCNFrame = function() {
+GENTICS.Aloha.GCN.getAssistantFrame = function() {
+	// only get the assistant frame once
+	if (this.assistantFrame !== undefined) {
+		return this.assistantFrame;
+	}
 	if (!window.parent) {
 		return false;
 	}
 	// check for the vertical assistant
 	var assistant = jQuery('frame', window.parent.document).eq(0);
 	if (assistant.attr('name') === 'ass') {
-		return true;
+		this.assistantFrame = assistant;
+		return assistant;
 	}
 	// check for the horizontal assistant
 	assistant = jQuery('frame', window.parent.document).eq(2);
 	if (assistant.attr('name') === 'ass') {
-		return true;
+		this.assistantFrame = assistant;
+		return assistant;
 	}
 
 	// we could also be in an iframe, so check further
@@ -794,17 +799,18 @@ GENTICS.Aloha.GCN.isGCNFrame = function() {
 	// check for the vertical assistant
 	var assistant = jQuery('frame', window.parent.parent.document).eq(0);
 	if (assistant.attr('name') === 'ass') {
-		return true;
+		this.assistantFrame = assistant;
+		return assistant;
 	}
 	// check for the horizontal assistant
 	assistant = jQuery('frame', window.parent.parent.document).eq(2);
 	if (assistant.attr('name') === 'ass') {
-		return true;
+		this.assistantFrame = assistant;
+		return assistant;
 	}
 
 	return false; 
 };
-
 
 /**
  * Removes the GCN assistant frame and removes the content from the main menu frame.
@@ -816,8 +822,9 @@ GENTICS.Aloha.GCN.isGCNFrame = function() {
  * @return void
  */
 GENTICS.Aloha.GCN.updateFrameUI = function () {
-	if (this.isGCNFrame()) {
-		var assistantFrameset = jQuery('frameset', window.parent.document);
+	var assistantFrame = this.getAssistantFrame();
+	if (assistantFrame) {
+		var assistantFrameset = assistantFrame.parent();
 		this.originalColumns = assistantFrameset.attr('cols');
 		this.originalRows = assistantFrameset.attr('rows');
 		if (this.originalColumns) {
@@ -826,30 +833,10 @@ GENTICS.Aloha.GCN.updateFrameUI = function () {
 		if (this.originalRows) {
 			assistantFrameset.attr('rows', '*,0,0');
 		}
-		
+
 		var menuFrame = jQuery(window.parent.parent.frames[2].document);
 		// hide the progress bar
 		menuFrame.find('#ProgressStatusInfo_0').hide();
-//		// hide the menu
-//		var menu = menuFrame.find('#menu');
-//		
-//		// Cells in the right menu
-//		var rightCells;
-//		// FF has a different setup of the menu frame
-//		if(menu.next().size() > 0) {
-//			menu.find('table').hide(); // main menu
-//			rightCells = menuFrame.find('.menuRight').find('td');
-//		} else {
-//			var cells = menu.find('td');
-//			cells.eq(0).hide();
-//			cells.eq(1).hide();
-//			rightCells = cells.eq(2).find('td');
-//		};
-//		
-//		rightCells.hide();
-//		if (rightCells.last) {
-//			rightCells.last().show();
-//		}
 	}
 };
 
@@ -862,8 +849,9 @@ GENTICS.Aloha.GCN.updateFrameUI = function () {
  * @return void
  */
 GENTICS.Aloha.GCN.restoreFrameUI = function () {
-	if (this.isGCNFrame()) {
-		var assistantFrameset = jQuery('frameset', window.parent.document);
+	var assistant = this.getAssistantFrame();
+	if (assistant) {
+		var assistantFrameset = assistant.parent();
 		if (this.originalColumns) {
 			assistantFrameset.attr('cols', this.originalColumns);
 		}
@@ -913,7 +901,7 @@ GENTICS.Aloha.GCN.quitEdit = function() {
 	this.cancelEdit(function() {
 		if (that.settings.backurl) {
 			document.location.href = that.settings.backurl;
-		} else if (that.isGCNFrame()) {
+		} else if (that.getAssistantFrame()) {
 			that.openGCNURL({
 				'url' : that.settings.stag_prefix,
 				'params' : {
@@ -978,6 +966,34 @@ GENTICS.Aloha.GCN.savePage = function (data) {
 		data = {};
 	}
 
+	if (data.asksynctrans && this.settings.translation_master) {
+		// check whether the page was translated from another page
+		var confirmSyncTrans = new GENTICS.Aloha.Message({
+			title : 'Gentics Content.Node',
+			text : GENTICS.Aloha.i18n(that, 'save.synctrans.confirm'),
+			type : GENTICS.Aloha.Message.Type.CONFIRM,
+			callback : function (btn, text) {
+				if (btn == 'yes') {
+					data.synctrans = true;
+				}
+				that._savePage(data);
+			}
+		});
+		GENTICS.Aloha.showMessage(confirmSyncTrans);
+	} else {
+		this._savePage(data);
+	}
+};
+
+/**
+ * Internal method to save the page
+ */
+GENTICS.Aloha.GCN._savePage = function(data) {
+	var that = this;
+	if (typeof data == 'undefined') {
+		data = {};
+	}
+
 	if (typeof data.async == 'undefined') {
 		data.async = true;
 	}
@@ -1005,6 +1021,16 @@ GENTICS.Aloha.GCN.savePage = function (data) {
 			'priority' : this.settings.priority
 		}
 	};
+
+	// propably set synchronization with the translation master
+	if (data.synctrans && this.settings.translation_master) {
+		requestBody.page.translationStatus = {
+				'pageId' : this.settings.translation_master
+		};
+		if (this.settings.translation_version) {
+			requestBody.page.translationStatus['versionTimestamp'] = this.settings.translation_version;
+		}
+	}
 
 	// first of all, get all a-Tags which contain a link to the GCN pages repository, but have no tag
 	if (this.settings.magiclinkconstruct) {
@@ -1059,16 +1085,6 @@ GENTICS.Aloha.GCN.savePage = function (data) {
 			}
 		} else {
 			// TODO we did not find the editable, what now?
-		}
-	}
-
-	// check whether the page was translated from another page
-	if (this.settings.translation_master) {
-		requestBody.page.translationStatus = {
-			'pageId' : this.settings.translation_master
-		};
-		if (this.settings.translation_version) {
-			requestBody.page.translationStatus['versionTimestamp'] = this.settings.translation_version;
 		}
 	}
 
@@ -1298,7 +1314,7 @@ GENTICS.Aloha.GCN.publishPage = function (success) {
 	var that = this;
 	this.savePage({
 		onsuccess : function () {
-			var publishParams = success ? {'do' : 14023, 'page_id' : that.settings.id} : (that.isGCNFrame() ? {'do' : 14003, 'cmd' : 'pub', 'PAGE_ID' : that.settings.id} : {'do' : 14012, 'realid' : that.settings.id, 'real' : 'pub'});
+			var publishParams = success ? {'do' : 14023, 'page_id' : that.settings.id} : (that.getAssistantFrame() ? {'do' : 14003, 'cmd' : 'pub', 'PAGE_ID' : that.settings.id} : {'do' : 14012, 'realid' : that.settings.id, 'real' : 'pub'});
 			if (success) {
 				that.performRESTRequest({
 					url : that.settings.stag_prefix,
@@ -1308,17 +1324,23 @@ GENTICS.Aloha.GCN.publishPage = function (success) {
 					}
 				});
 			} else {
-				that.openGCNURL({
+				var where = undefined;
+				// detect the location of the "list" frame
+				if (top && top.main && top.main.list && parent && parent == top.main.list) {
+					where = 'parent';
+				}
+				that.openURL(that.createGCNURL({
 					url : that.settings.stag_prefix,
 					params : publishParams,
 					noCache : true
-				});
+				}), where);
 			}
 		},
 		onfailure : function ()  {
 			// TODO error handling
 		},
-		silent : success ? true : false
+		silent : success ? true : false,
+		asksynctrans : true
 	});
 };
 
@@ -1330,17 +1352,23 @@ GENTICS.Aloha.GCN.publishPageAt = function () {
 	var that = this;
 	this.savePage({
 		onsuccess : function () {
-			var propsBackParam = that.isGCNFrame() ? '' : 'a:3:{s:4:"REDO";s:5:"14012";s:6:"realid";s:'+String(that.settings.id).length+':"'+that.settings.id+'";s:4:"real";s:4:"edit";}';	
-			var publishAtParams = that.isGCNFrame() ? {'do' : 14021} : {'do' : 14021, 'PAGE_ID' : that.settings.id, 'FOLDER_ID' : that.settings.folderId, 'back' : propsBackParam};
-			that.openGCNURL({
+			var propsBackParam = that.getAssistantFrame() ? '' : 'a:3:{s:4:"REDO";s:5:"14012";s:6:"realid";s:'+String(that.settings.id).length+':"'+that.settings.id+'";s:4:"real";s:4:"edit";}';	
+			var publishAtParams = that.getAssistantFrame() ? {'do' : 14021} : {'do' : 14021, 'PAGE_ID' : that.settings.id, 'FOLDER_ID' : that.settings.folderId, 'back' : propsBackParam};
+			var where = undefined;
+			// detect the location of the "list" frame
+			if (top && top.main && top.main.list && parent && parent == top.main.list) {
+				where = 'parent';
+			}
+			that.openURL(that.createGCNURL({
 				url : that.settings.stag_prefix,
-				params : publishAtParams,
+				params : publishParams,
 				noCache : true
-			});
+			}), where);
 		},
 		onfailure : function ()  {
 			// TODO error handling
-		}
+		},
+		asksynctrans : true
 	});
 };
 
@@ -1567,7 +1595,7 @@ GENTICS.Aloha.GCN.openTagFill = function(tagid) {
 	}
 
 	// value of the backParam parameter for call to tag_fill (do 10008)
-	var tagfillBackParam = this.isGCNFrame() ? '' : 'realid|' + this.settings.id;
+	var tagfillBackParam = this.getAssistantFrame() ? '' : 'realid|' + this.settings.id;
 
 	var editLink = this.createGCNURL({
 		'url' : this.settings.stag_prefix,

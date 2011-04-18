@@ -22,3 +22,4 @@ confirm.delete.title=Bestätigen
 confirm.delete=Wollen Sie diese Seite löschen?
 confirm.deletefolder=Wollen Sie diesen Menüeintrag löschen?
 confirm.editable.modified=Sie haben Änderungen, die noch nicht gespeichert sind. Wollen Sie diese jetzt speichern?
+save.synctrans.confirm=Ist die Übersetzung damit abgeschlossen?
