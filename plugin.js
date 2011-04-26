@@ -471,7 +471,7 @@ GENTICS.Aloha.GCN.init = function () {
 		GENTICS.Aloha.Ribbon.addButton(cancelButton);
 	}
 
-	if (this.getAssistantFrame()) {
+	if (this.getAssistantFrame() || this.isFrontend() ) {
 		// Add a separator before the rest of the buttons
 //		GENTICS.Aloha.Ribbon.addSeparator();
 //		
@@ -810,6 +810,19 @@ GENTICS.Aloha.GCN.isEditFrameMaximized = function () {
 	} else {
 		return false;
 	}
+};
+
+/**
+ * Check if we are in the frontend environment.
+ * 
+ * @return true if we are in frontend mode, otherwise false.
+ */
+GENTICS.Aloha.GCN.isFrontend = function() {
+  if((typeof this.settings.links) !== undefined && this.settings.links == 'frontend') {
+     return true;
+  } else {
+     return false;
+  }
 };
 
 /**
