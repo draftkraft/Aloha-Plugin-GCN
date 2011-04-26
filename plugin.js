@@ -462,6 +462,19 @@ GENTICS.Aloha.GCN.init = function () {
 		
 		// first of all hide the ribbon, as it's not needed in GCN frame mode
 		GENTICS.Aloha.Ribbon.hide();
+		
+		// add assistant history information
+		top.main.ass.GTXHistory.add({
+			id: GENTICS.Aloha.settings.plugins['com.gentics.aloha.plugins.GCN'].id,
+			type: 'page',
+			name: GENTICS.Aloha.settings.plugins['com.gentics.aloha.plugins.GCN'].name,
+			href: '/CNPortletapp/alohapage?realid=' + GENTICS.Aloha.settings.plugins['com.gentics.aloha.plugins.GCN'].id +	
+				'&language=' + GENTICS.Aloha.settings.plugins['com.gentics.aloha.plugins.GCN'].languageid + 
+				'&sid=' + GENTICS.Aloha.settings.plugins['com.gentics.aloha.plugins.GCN'].sid +
+				'&real=edit',
+			icon: "?do=11&module=system&img=edit.png",
+			aloha: true
+		});
 	}
 	
 	// Set the icon in the ribbon
