@@ -103,7 +103,7 @@ GENTICS.Aloha.GCN.init = function () {
 	 */
 	var maximizeOptions = null;
 	
-	if (this.isGCNFrame()) {
+	if (this.isGCNFrame() || this.isFrontend()) {
 		// we want to hide the ribbon
 		GENTICS.Aloha.settings.ribbon = false;
 
@@ -732,6 +732,21 @@ GENTICS.Aloha.GCN.isEditFrameMaximized = function () {
 		return false;
 	}
 };
+
+
+/**
+ * Check if we are in the frontend environment.
+ * 
+ * @return true if we are in frontend mode, otherwise false.
+ */
+GENTICS.Aloha.GCN.isFrontend = function() {
+  if((typeof this.settings.links) !== undefined && this.settings.links == 'frontend') {
+     return true;
+  } else {
+     return false;
+  }
+};
+
 
 /**
  * Checks if we are in a GCN frame environment.
