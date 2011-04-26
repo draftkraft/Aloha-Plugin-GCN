@@ -43,12 +43,25 @@ GENTICS.Aloha.GCN.restUrl = GENTICS.Aloha.GCN.backendUrl + '/rest';
  * allows you to specify an error handler function by setting
  * GENTICS.Aloha.settings.plugins["com.gentics.aloha.plugins.GCN"].errorHandler = function () { whatever... };
  * 
- * The error handler will be called in any case of error that is handled by the GCNIntegrationPlugin.
+ * The error handler will be called in any case of error that is handled by the GCNIntegrationPlugin, before
+ * the plugin will execute it's own error behaviour. Use the following parameters and return values
  * 
- * Return true the have the GCNIntegrationPlugin continue with it's own error handling process, or
- * false to prevent default error handling
+ * An example implementation of your error handler could be:
+ * 
+ * GENTICS.Aloha.settings.plugins["com.gentics.aloha.plugins.GCN"].errorHandler = function (id, data) {
+ *   alert(id); // alert the error id that occured
+ * };
+ * 
+ * @param {String} errorId an id for the error. Currently, those are the possible ids you might encounter:
+ * 		"welcomemessages" : an error occured, when the page was loaded - e.g. it could be locked by another user
+ * 		"restcall.cancelpage" : an error occured, when canceling the edit process on the server. the page will not be unlocked
+ * 		"restcall.savepage" : an error occured while saving the page
+ * 		"restcall.createtag" : an error occurred while creating a new contenttag
+ * 		"restcall.reloadtag" : an error occured while reloading an existing contenttag from the server
+ * @param {Object} data additional information regarding the error
+ * @return true the have the GCNIntegrationPlugin continue with it's own error handling process, or false to prevent default error handling
  */
-GENTICS.Aloha.GCN.errorHandler = function () { return true; };
+GENTICS.Aloha.GCN.errorHandler = function (errorId, data) { return true; };
 
 /**
  * Closes a current active lightbox
@@ -223,7 +236,7 @@ GENTICS.Aloha.GCN.init = function () {
 	// Display welcome messages - simple alerts for testing
 	if (this.settings.welcomeMessages) {
 		// invoke error handler first
-		if (this.errorHandler(this.settings.welcomeMessages) !== false) {
+		if (this.errorHandler('welcomemessages', this.settings.welcomeMessages) !== false) {
 			jQuery.each(this.settings.welcomeMessages, function (index, message) {
 				GENTICS.Aloha.showMessage(new GENTICS.Aloha.Message({
 					title : 'Gentics Content.Node',
@@ -911,6 +924,11 @@ GENTICS.Aloha.GCN.cancelEdit = function (callback) {
 		'description' : 'restcall.cancelpage',
 		'success' : callback,
 		'error' : function(data) {
+			// invoke error handler
+			if (this.errorHandler('restcall.cancelpage', data) === false) {
+				return;
+			}
+			
 			GENTICS.Aloha.showMessage(new GENTICS.Aloha.Message({
 				title : 'Gentics Content.Node',
 				text : that.i18n('restcall.cancelpage.error'),
@@ -1183,6 +1201,11 @@ GENTICS.Aloha.GCN._savePage = function(data) {
 	var onfailure = data ? data.onfailure : undefined;
 	if (typeof onfailure != 'function') {
 		onfailure = function(data) {
+			// invoke error handler
+			if (this.errorHandler('restcall.savepage', data) === false) {
+				return;
+			}
+			
 			GENTICS.Aloha.showMessage(new GENTICS.Aloha.Message({
 				title : 'Gentics Content.Node',
 				text : that.i18n('restcall.savepage.error'),
@@ -1713,7 +1736,12 @@ GENTICS.Aloha.GCN.createTag = function(constructId, async, success) {
 				'success' : success ? success : function(data) {
 					that.handleBlock(data, true);
 				},
-				'error' : function () {
+				'error' : function (data) {
+					// invoke error handler
+					if (this.errorHandler('restcall.createtag', data) === false) {
+						return;
+					}
+					
 					GENTICS.Aloha.showMessage(new GENTICS.Aloha.Message({
 						title : 'Gentics Content.Node',
 						text : GENTICS.Aloha.i18n(that, 'restcall.createtag.error'),
@@ -1792,7 +1820,12 @@ GENTICS.Aloha.GCN.reloadBlock = function(tagid) {
 		'success' : function (data) {
 			that.handleBlock(data, false);
 		},
-		'error' : function () {
+		'error' : function (data) {
+			// invoke error handler
+			if (this.errorHandler('restcall.reloadtag', data) === false) {
+				return;
+			}
+			
 			GENTICS.Aloha.showMessage(new GENTICS.Aloha.Message({
 				title : 'Gentics Content.Node',
 				text : GENTICS.Aloha.i18n(that, 'restcall.reloadtag.error'),
