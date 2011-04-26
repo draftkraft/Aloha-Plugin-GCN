@@ -40,6 +40,17 @@ GENTICS.Aloha.GCN.backendUrl = '../CNPortletapp';
 GENTICS.Aloha.GCN.restUrl = GENTICS.Aloha.GCN.backendUrl + '/rest';
 
 /**
+ * allows you to specify an error handler function by setting
+ * GENTICS.Aloha.settings.plugins["com.gentics.aloha.plugins.GCN"].errorHandler = function () { whatever... };
+ * 
+ * The error handler will be called in any case of error that is handled by the GCNIntegrationPlugin.
+ * 
+ * Return true the have the GCNIntegrationPlugin continue with it's own error handling process, or
+ * false to prevent default error handling
+ */
+GENTICS.Aloha.GCN.errorHandler = function () { return true; };
+
+/**
  * Closes a current active lightbox
  */
 GENTICS.Aloha.GCN.closeLightbox = function() {
@@ -57,6 +68,11 @@ GENTICS.Aloha.GCN.closeLightbox = function() {
 GENTICS.Aloha.GCN.init = function () {
 	var that = this;
  
+	// set custom error handler
+	if (typeof this.settings.errorHandler === 'function') {
+		this.errorHandler = this.settings.errorHandler;
+	}
+	
 	// intiate prettyphoto with facebook style 
 	jQuery().prettyPhoto({
 		theme:'light_square',
@@ -206,13 +222,16 @@ GENTICS.Aloha.GCN.init = function () {
 
 	// Display welcome messages - simple alerts for testing
 	if (this.settings.welcomeMessages) {
-		jQuery.each(this.settings.welcomeMessages, function (index, message) {
-			GENTICS.Aloha.showMessage(new GENTICS.Aloha.Message({
-				title : 'Gentics Content.Node',
-				text : message.message,
-				type : GENTICS.Aloha.Message.Type.ALERT
-			}));
-		});
+		// invoke error handler first
+		if (this.errorHandler(this.settings.welcomeMessages) !== false) {
+			jQuery.each(this.settings.welcomeMessages, function (index, message) {
+				GENTICS.Aloha.showMessage(new GENTICS.Aloha.Message({
+					title : 'Gentics Content.Node',
+					text : message.message,
+					type : GENTICS.Aloha.Message.Type.ALERT
+				}));
+			});
+		}
 	}
 
 	if (GENTICS.Aloha.Log.isDebugEnabled()) {
