@@ -58,6 +58,10 @@ GENTICS.Aloha.GCN.restUrl = GENTICS.Aloha.GCN.backendUrl + '/rest';
  * 		"restcall.savepage" : an error occured while saving the page
  * 		"restcall.createtag" : an error occurred while creating a new contenttag
  * 		"restcall.reloadtag" : an error occured while reloading an existing contenttag from the server
+ *		"restcall.livepreview" : error while rendering the page's live preview
+ *		"restcall.publishpage" : error while publishing the page
+ *		"restcall.publishpageat" : error while publishing the page at a certain timeframe
+ *		"restcall.renderblock" : error while rendering a contenttag or block
  * @param {Object} data additional information regarding the error
  * @return true the have the GCNIntegrationPlugin continue with it's own error handling process, or false to prevent default error handling
  */
@@ -297,7 +301,10 @@ GENTICS.Aloha.GCN.init = function () {
 					});
 				},
 				onfailure : function ()  {
-					// TODO error handling
+					// invoke error handler
+					if (GENTICS.Aloha.GCN.errorHandler('restcall.livepreview', data) === false) {
+						return;
+					}
 				},
 				silent : true
 			});
@@ -1407,8 +1414,11 @@ GENTICS.Aloha.GCN.publishPage = function (success) {
 				}), where);
 			}
 		},
-		onfailure : function ()  {
-			// TODO error handling
+		onfailure : function (data)  {
+			// invoke error handler
+			if (GENTICS.Aloha.GCN.errorHandler('restcall.publishpage', data) === false) {
+				return;
+			}
 		},
 		silent : success ? true : false,
 		asksynctrans : true
@@ -1437,7 +1447,10 @@ GENTICS.Aloha.GCN.publishPageAt = function () {
 			}), where);
 		},
 		onfailure : function ()  {
-			// TODO error handling
+			// invoke error handler
+			if (GENTICS.Aloha.GCN.errorHandler('restcall.publishpageat', data) === false) {
+				return;
+			}
 		},
 		asksynctrans : true
 	});
@@ -1695,7 +1708,13 @@ GENTICS.Aloha.GCN.openTagFill = function(tagid) {
 			},
 			'unlock' : false,
 			'silent' : true,
-			'async' : false
+			'async' : false,
+			'onfailure' : function() {
+  			 // invoke error handler
+  			if (GENTICS.Aloha.GCN.errorHandler('restcall.savepage', data) === false) {
+  				return;
+  			}
+      }
 		});
 	} else {
 		// Hide all aloha elements
@@ -1941,7 +1960,13 @@ GENTICS.Aloha.GCN.renderBlockContent = function (content) {
 		'async' : false,
 		'success' : function (data) {
 			newContent = data;
-		}
+		},
+		'error' : function (data) {
+		  // invoke error handler
+			if (this.errorHandler('restcall.renderblock', data) === false) {
+				return;
+			}
+    	}
 	});
 
 	return newContent;
