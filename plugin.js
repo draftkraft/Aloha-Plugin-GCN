@@ -40,6 +40,34 @@ GENTICS.Aloha.GCN.backendUrl = '../CNPortletapp';
 GENTICS.Aloha.GCN.restUrl = GENTICS.Aloha.GCN.backendUrl + '/rest';
 
 /**
+ * allows you to specify an error handler function by setting
+ * GENTICS.Aloha.settings.plugins["com.gentics.aloha.plugins.GCN"].errorHandler = function () { whatever... };
+ * 
+ * The error handler will be called in any case of error that is handled by the GCNIntegrationPlugin, before
+ * the plugin will execute it's own error behaviour. Use the following parameters and return values
+ * 
+ * An example implementation of your error handler could be:
+ * 
+ * GENTICS.Aloha.settings.plugins["com.gentics.aloha.plugins.GCN"].errorHandler = function (id, data) {
+ *   alert(id); // alert the error id that occured
+ * };
+ * 
+ * @param {String} errorId an id for the error. Currently, those are the possible ids you might encounter:
+ * 		"welcomemessages" : an error occured, when the page was loaded - e.g. it could be locked by another user
+ * 		"restcall.cancelpage" : an error occured, when canceling the edit process on the server. the page will not be unlocked
+ * 		"restcall.savepage" : an error occured while saving the page
+ * 		"restcall.createtag" : an error occurred while creating a new contenttag
+ * 		"restcall.reloadtag" : an error occured while reloading an existing contenttag from the server
+ *		"restcall.livepreview" : error while rendering the page's live preview
+ *		"restcall.publishpage" : error while publishing the page
+ *		"restcall.publishpageat" : error while publishing the page at a certain timeframe
+ *		"restcall.renderblock" : error while rendering a contenttag or block
+ * @param {Object} data additional information regarding the error
+ * @return true the have the GCNIntegrationPlugin continue with it's own error handling process, or false to prevent default error handling
+ */
+GENTICS.Aloha.GCN.errorHandler = function (errorId, data) { return true; };
+
+/**
  * Closes a current active lightbox
  */
 GENTICS.Aloha.GCN.closeLightbox = function() {
@@ -57,6 +85,11 @@ GENTICS.Aloha.GCN.closeLightbox = function() {
 GENTICS.Aloha.GCN.init = function () {
 	var that = this;
  
+	// set custom error handler
+	if (typeof this.settings.errorHandler === 'function') {
+		this.errorHandler = this.settings.errorHandler;
+	}
+	
 	// intiate prettyphoto with facebook style 
 	jQuery().prettyPhoto({
 		theme:'light_square',
@@ -206,13 +239,16 @@ GENTICS.Aloha.GCN.init = function () {
 
 	// Display welcome messages - simple alerts for testing
 	if (this.settings.welcomeMessages) {
-		jQuery.each(this.settings.welcomeMessages, function (index, message) {
-			GENTICS.Aloha.showMessage(new GENTICS.Aloha.Message({
-				title : 'Gentics Content.Node',
-				text : message.message,
-				type : GENTICS.Aloha.Message.Type.ALERT
-			}));
-		});
+		// invoke error handler first
+		if (this.errorHandler('welcomemessages', this.settings.welcomeMessages) !== false) {
+			jQuery.each(this.settings.welcomeMessages, function (index, message) {
+				GENTICS.Aloha.showMessage(new GENTICS.Aloha.Message({
+					title : 'Gentics Content.Node',
+					text : message.message,
+					type : GENTICS.Aloha.Message.Type.ALERT
+				}));
+			});
+		}
 	}
 
 	// log rendermessages in console
@@ -274,7 +310,10 @@ GENTICS.Aloha.GCN.init = function () {
 					});
 				},
 				onfailure : function ()  {
-					// TODO error handling
+					// invoke error handler
+					if (GENTICS.Aloha.GCN.errorHandler('restcall.livepreview', data) === false) {
+						return;
+					}
 				},
 				silent : true
 			});
@@ -448,7 +487,7 @@ GENTICS.Aloha.GCN.init = function () {
 		GENTICS.Aloha.Ribbon.addButton(cancelButton);
 	}
 
-	if (this.getAssistantFrame()) {
+	if (this.getAssistantFrame() || this.isFrontend() ) {
 		// Add a separator before the rest of the buttons
 //		GENTICS.Aloha.Ribbon.addSeparator();
 //		
@@ -471,6 +510,22 @@ GENTICS.Aloha.GCN.init = function () {
 		
 		// first of all hide the ribbon, as it's not needed in GCN frame mode
 		GENTICS.Aloha.Ribbon.hide();
+		
+	}
+	
+	if (this.getAssistantFrame()) {
+		// add assistant history information
+		top.main.ass.GTXHistory.add({
+			id: GENTICS.Aloha.settings.plugins['com.gentics.aloha.plugins.GCN'].id,
+			type: 'page',
+			name: GENTICS.Aloha.settings.plugins['com.gentics.aloha.plugins.GCN'].name,
+			href: '/CNPortletapp/alohapage?realid=' + GENTICS.Aloha.settings.plugins['com.gentics.aloha.plugins.GCN'].id +	
+			'&language=' + GENTICS.Aloha.settings.plugins['com.gentics.aloha.plugins.GCN'].languageid + 
+			'&sid=' + GENTICS.Aloha.settings.plugins['com.gentics.aloha.plugins.GCN'].sid +
+			'&real=edit',
+			icon: "?do=11&module=system&img=edit.png",
+			aloha: true
+		});
 	}
 	
 	// Set the icon in the ribbon
@@ -777,6 +832,19 @@ GENTICS.Aloha.GCN.isEditFrameMaximized = function () {
 };
 
 /**
+ * Check if we are in the frontend environment.
+ * 
+ * @return true if we are in frontend mode, otherwise false.
+ */
+GENTICS.Aloha.GCN.isFrontend = function() {
+  if((typeof this.settings.links) !== undefined && this.settings.links == 'frontend') {
+     return true;
+  } else {
+     return false;
+  }
+};
+
+/**
  * Get the assistant frame as jQuery object (if editor is opened in the GCN Frameset). Otherwise returns false.
  * @return assistant frame as jQuery object or false
  */
@@ -888,6 +956,11 @@ GENTICS.Aloha.GCN.cancelEdit = function (callback) {
 		'description' : 'restcall.cancelpage',
 		'success' : callback,
 		'error' : function(data) {
+			// invoke error handler
+			if (this.errorHandler('restcall.cancelpage', data) === false) {
+				return;
+			}
+			
 			GENTICS.Aloha.showMessage(new GENTICS.Aloha.Message({
 				title : 'Gentics Content.Node',
 				text : that.i18n('restcall.cancelpage.error'),
@@ -1160,6 +1233,11 @@ GENTICS.Aloha.GCN._savePage = function(data) {
 	var onfailure = data ? data.onfailure : undefined;
 	if (typeof onfailure != 'function') {
 		onfailure = function(data) {
+			// invoke error handler
+			if (this.errorHandler('restcall.savepage', data) === false) {
+				return;
+			}
+			
 			GENTICS.Aloha.showMessage(new GENTICS.Aloha.Message({
 				title : 'Gentics Content.Node',
 				text : that.i18n('restcall.savepage.error'),
@@ -1345,8 +1423,11 @@ GENTICS.Aloha.GCN.publishPage = function (success) {
 				}), where);
 			}
 		},
-		onfailure : function ()  {
-			// TODO error handling
+		onfailure : function (data)  {
+			// invoke error handler
+			if (GENTICS.Aloha.GCN.errorHandler('restcall.publishpage', data) === false) {
+				return;
+			}
 		},
 		silent : success ? true : false,
 		asksynctrans : true
@@ -1375,7 +1456,10 @@ GENTICS.Aloha.GCN.publishPageAt = function () {
 			}), where);
 		},
 		onfailure : function ()  {
-			// TODO error handling
+			// invoke error handler
+			if (GENTICS.Aloha.GCN.errorHandler('restcall.publishpageat', data) === false) {
+				return;
+			}
 		},
 		asksynctrans : true
 	});
@@ -1633,7 +1717,13 @@ GENTICS.Aloha.GCN.openTagFill = function(tagid) {
 			},
 			'unlock' : false,
 			'silent' : true,
-			'async' : false
+			'async' : false,
+			'onfailure' : function() {
+  			 // invoke error handler
+  			if (GENTICS.Aloha.GCN.errorHandler('restcall.savepage', data) === false) {
+  				return;
+  			}
+      }
 		});
 	} else {
 		// Hide all aloha elements
@@ -1690,7 +1780,12 @@ GENTICS.Aloha.GCN.createTag = function(constructId, async, success) {
 				'success' : success ? success : function(data) {
 					that.handleBlock(data, true);
 				},
-				'error' : function () {
+				'error' : function (data) {
+					// invoke error handler
+					if (this.errorHandler('restcall.createtag', data) === false) {
+						return;
+					}
+					
 					GENTICS.Aloha.showMessage(new GENTICS.Aloha.Message({
 						title : 'Gentics Content.Node',
 						text : GENTICS.Aloha.i18n(that, 'restcall.createtag.error'),
@@ -1769,7 +1864,12 @@ GENTICS.Aloha.GCN.reloadBlock = function(tagid) {
 		'success' : function (data) {
 			that.handleBlock(data, false);
 		},
-		'error' : function () {
+		'error' : function (data) {
+			// invoke error handler
+			if (this.errorHandler('restcall.reloadtag', data) === false) {
+				return;
+			}
+			
 			GENTICS.Aloha.showMessage(new GENTICS.Aloha.Message({
 				title : 'Gentics Content.Node',
 				text : GENTICS.Aloha.i18n(that, 'restcall.reloadtag.error'),
@@ -1869,7 +1969,13 @@ GENTICS.Aloha.GCN.renderBlockContent = function (content) {
 		'async' : false,
 		'success' : function (data) {
 			newContent = data;
-		}
+		},
+		'error' : function (data) {
+		  // invoke error handler
+			if (this.errorHandler('restcall.renderblock', data) === false) {
+				return;
+			}
+    	}
 	});
 
 	return newContent;
