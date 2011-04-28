@@ -3,7 +3,7 @@
  * @hide
  */
 if ( !GENTICS.Aloha.Repositories ) GENTICS.Aloha.Repositories = {};
-GENTICS.Aloha.Repositories.Page = new GENTICS.Aloha.Repository('com.gentics.aloha.GCN.Page');
+GENTICS.Aloha.Repositories.Page = new GENTICS.Aloha.Repository('com.gentics.aloha.GCN.Page', 'Content.Node');
 
 /**
  * Initialize the repository
@@ -24,11 +24,17 @@ GENTICS.Aloha.Repositories.Page.query = function( p, callback) {
 	}
 	var that = this;
 	var params = {
-		'query' : p.queryString,
 		'links' : GENTICS.Aloha.GCN.settings.links
 	};
+	if (p.queryString) {
+		params['query'] = p.queryString;
+	}
 	if (p.maxItems) {
 		params['maxItems'] = p.maxItems;
+	}
+	if (p.inFolderId) {
+		params['folderId'] = p.inFolderId;
+		params['recursive'] = false;
 	}
 	// TODO handle errors
 	GENTICS.Aloha.GCN.performRESTRequest({
@@ -65,6 +71,60 @@ GENTICS.Aloha.Repositories.Page.getObjectById = function (itemId, callback) {
 		},
 		'type' : 'GET'
 	});
+};
+
+/**
+ * Returns all children of a given motherId.
+ *
+ * @param {object} params object with properties
+ * <div class="mdetail-params"><ul>
+ * <li><code> objectTypeFilter</code> : array  (optional) <div class="sub-desc">Object types that will be returned.</div></li>
+ * <li><code> filter</code> : array  (optional) <div class="sub-desc">Attributes that will be returned.</div></li>
+ * <li><code> inFolderId</code> : boolean  (optional) <div class="sub-desc">This indicates whether or not a candidate object is a child-object of the folder object identified by the given inFolderId (objectId).</div></li>
+ * <li><code> orderBy</code> : array  (optional) <div class="sub-desc">ex. [{lastModificationDate:'DESC', name:'ASC'}]</div></li>
+ * <li><code> maxItems</code> : Integer  (optional) <div class="sub-desc">number items to return as result</div></li>
+ * <li><code> skipCount</code> : Integer  (optional) <div class="sub-desc">This is tricky in a merged multi repository scenario</div></li>
+ * <li><code> renditionFilter</code> : array  (optional) <div class="sub-desc">Instead of termlist an array of kind or mimetype is expected. If null or array.length == 0 all renditions are returned. See http://docs.oasis-open.org/cmis/CMIS/v1.0/cd04/cmis-spec-v1.0.html#_Ref237323310 for renditionFilter</div></li>
+ * </ul></div>
+ * @param {function} callback this method must be called with all result items
+ */
+GENTICS.Aloha.Repository.prototype.getChildren = function( params, callback ) {
+	var children = [];
+	var that = this;
+
+	if (params.inFolderId == this.repositoryId) {
+		params.inFolderId = 0;
+	}
+	GENTICS.Aloha.GCN.performRESTRequest({
+		'url' : GENTICS.Aloha.GCN.settings.stag_prefix + GENTICS.Aloha.GCN.restUrl + '/folder/getFolders/' + params.inFolderId,
+		'params' : params,
+		'success' : function(data) {
+			for (var i = 0; i < data.folders.length; ++i) {
+				data.folders[i] = that.getFolder(data.folders[i]);
+			}
+			callback.call(that, data.folders);
+		},
+		'type' : 'GET'
+ 	});
+};
+
+/**
+ * Transform the given data (fetched from the backend) into a repository folder
+ * @param {Object} data data of a folder fetched from the backend
+ * @return {GENTICS.Aloha.Repository.Object} repository item
+ */
+GENTICS.Aloha.Repositories.Page.getFolder = function(data) {
+	if (!data) {
+		return null;
+	}
+
+	var fData = {
+		'repositoryId' : 'com.gentics.aloha.GCN.Page',
+		'type' : 'folder',
+		'id' : data.id,
+		'name' : data.name
+	};
+	return new GENTICS.Aloha.Repository.Folder(fData);
 };
 
 /**
