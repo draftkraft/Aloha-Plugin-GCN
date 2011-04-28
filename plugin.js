@@ -215,6 +215,15 @@ GENTICS.Aloha.GCN.init = function () {
 		});
 	}
 
+	// log rendermessages in console
+	if (this.settings.renderMessages) {
+		jQuery.each(this.settings.renderMessages, function (index, message) {
+			if (message.level && GENTICS.Aloha.Log.isLogLevelEnabled(message.level.toLowerCase())) {
+				GENTICS.Aloha.Log.log(message.level.toLowerCase(), this, message.message);
+			}
+		});
+	}
+
 	if (GENTICS.Aloha.Log.isDebugEnabled()) {
 		var editables = 0;
 		var blocks = 0;
