@@ -1423,6 +1423,10 @@ GENTICS.Aloha.GCN.findLoadedEditable = function (id) {
 GENTICS.Aloha.GCN.makeClean = function (obj) {
 	var that = this;
 
+	// Remove sizset and sizecache attributes that are set by sizzle and not removed when using ie.
+	obj.find("[sizset]").removeAttr("sizset");
+	obj.find("[sizcache]").removeAttr("sizcache");
+	
 	// find all a-Tags with data-GENTICS-aloha-repository set to the GCN pages
 	// repository
 	obj.find('a[data-GENTICS-aloha-repository="com.gentics.aloha.GCN.Page"]')
