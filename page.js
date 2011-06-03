@@ -40,7 +40,7 @@ GENTICS.Aloha.Repositories.Page.query = function( p, callback) {
 	var fetchPages = true;
 	var fetchFiles = true;
 	
-	if (p.objectTypeFilter) {
+	if (p.objectTypeFilter && p.objectTypeFilter.length > 0) {
 		if(jQuery.inArray("website", p.objectTypeFilter) == -1) {
 			fetchPages = false;
 		}
