@@ -1183,6 +1183,10 @@ GENTICS.Aloha.GCN._savePage = function(data) {
 							'type' : 'PAGE',
 							'pageId' : block.data.url
 						},
+						'fileurl' : {
+							'type' : 'FILE',
+							'fileId' : block.data.fileurl
+						},
 						'text' : {
 							'type' : 'STRING',
 							'stringValue' : block.data.text
@@ -1503,13 +1507,28 @@ GENTICS.Aloha.GCN.makeClean = function (obj) {
 
 			// get the link data and store in the block
 			if (block) {
-				block.data = {
-					'url' : jqAnchor.attr(
-							'data-GENTICS-aloha-object-id')
-							.substring(6),
-					'text' : jqAnchor.text(),
-					'class' : jqAnchor.attr('class')
-				};
+				
+				//check the type of the link
+				//and set the according tagpart
+				var contentid = jqAnchor.attr(
+				'data-GENTICS-aloha-object-id');
+				var idArray = contentid.split('.');
+				if (idArray[0] == '10007') {
+					block.data = {
+							'url' : idArray[1],
+							'fileurl' : 0,
+							'text' : jqAnchor.text(),
+							'class' : jqAnchor.attr('class')
+						};
+				} else if (idArray[0] == '10008') {
+					block.data = {
+							'fileurl' : idArray[1],
+							'url' : 0,
+							'text' : jqAnchor.text(),
+							'class' : jqAnchor.attr('class')
+						};
+				}
+				
 			}
 	});
 

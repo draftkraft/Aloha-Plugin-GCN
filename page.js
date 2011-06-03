@@ -36,18 +36,73 @@ GENTICS.Aloha.Repositories.Page.query = function( p, callback) {
 		params['folderId'] = p.inFolderId;
 		params['recursive'] = false;
 	}
+		
+	var fetchPages = true;
+	var fetchFiles = true;
+	
+	if (p.objectTypeFilter) {
+		if(jQuery.inArray("website", p.objectTypeFilter) == -1) {
+			fetchPages = false;
+		}
+		if(jQuery.inArray("files", p.objectTypeFilter) == -1) {
+			fetchFiles = false;
+		}
+	}
 	// TODO handle errors
-	GENTICS.Aloha.GCN.performRESTRequest({
-		'url' : GENTICS.Aloha.GCN.settings.stag_prefix + GENTICS.Aloha.GCN.restUrl + '/folder/findPages',
-		'params' : params,
-		'success' : function(data) {
-			for (var i = 0; i < data.pages.length; ++i) {
-				data.pages[i] = that.getDocument(data.pages[i]);
-			}
-			callback.call(that, data.pages);
-		},
-		'type' : 'GET'
- 	});
+	if (fetchPages === true && fetchFiles === true) {
+		//Fetch both
+		GENTICS.Aloha.GCN.performRESTRequest({
+			'url' : GENTICS.Aloha.GCN.settings.stag_prefix + GENTICS.Aloha.GCN.restUrl + '/folder/findPages',
+			'params' : params,
+			'success' : function(data) {
+				var collection = [];
+				for (var i = 0; i < data.pages.length; ++i) {
+					data.pages[i] = that.getDocument(data.pages[i], '10007');
+					collection.push(data.pages[i]);
+				}
+				GENTICS.Aloha.GCN.performRESTRequest({
+					'url' : GENTICS.Aloha.GCN.settings.stag_prefix + GENTICS.Aloha.GCN.restUrl + '/folder/findFiles',
+					'params' : params,
+					'success' : function(data) {
+						for (var i = 0; i < data.files.length; ++i) {
+							data.files[i] = that.getDocument(data.files[i], '10008');
+							collection.push(data.files[i]);
+						}
+						callback.call(that, collection);
+					},
+					'type' : 'GET'
+			 	});
+			},
+			'type' : 'GET'
+	 	});
+	} else if (fetchPages === true) {
+		//Fetch pages
+		GENTICS.Aloha.GCN.performRESTRequest({
+			'url' : GENTICS.Aloha.GCN.settings.stag_prefix + GENTICS.Aloha.GCN.restUrl + '/folder/findPages',
+			'params' : params,
+			'success' : function(data) {
+				for (var i = 0; i < data.pages.length; ++i) {
+					data.pages[i] = that.getDocument(data.pages[i], '10007');
+				}
+				callback.call(that, data.pages);
+			},
+			'type' : 'GET'
+	 	});
+	} else if (fetchFiles === true) {
+		//Fetch files
+		GENTICS.Aloha.GCN.performRESTRequest({
+			'url' : GENTICS.Aloha.GCN.settings.stag_prefix + GENTICS.Aloha.GCN.restUrl + '/folder/findFiles',
+			'params' : params,
+			'success' : function(data) {
+				for (var i = 0; i < data.files.length; ++i) {
+					data.files[i] = that.getDocument(data.files[i], '10008');
+				}
+				callback.call(that, data.files);
+			},
+			'type' : 'GET'
+	 	});
+	}
+	
 };
 
 /**
@@ -127,18 +182,20 @@ GENTICS.Aloha.Repositories.Page.getFolder = function(data) {
 	return new GENTICS.Aloha.Repository.Folder(fData);
 };
 
+
 /**
  * Transform the given data (fetched from the backend) into a repository item
  * @param {Object} data data of a page fetched from the backend
  * @return {GENTICS.Aloha.Repository.Object} repository item
  */
-GENTICS.Aloha.Repositories.Page.getDocument = function(data) {
+GENTICS.Aloha.Repositories.Page.getDocument = function(data, objecttype) {
 	if (!data) {
 		return null;
 	}
 
+	objecttype = objecttype || 10007;
 	// set the id
-	data.id = "10007." + data.id;
+	data.id = objecttype + "." + data.id;
 
 	// make the path information shorter by replacing path parts in the middle with ...
 	var path = data.path;
