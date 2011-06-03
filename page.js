@@ -70,6 +70,10 @@ GENTICS.Aloha.Repositories.Page.query = function( p, callback) {
 						}
 						callback.call(that, collection);
 					},
+					'error' : function() {
+						// when the second REST request has an error, we call the callback for the results of the first call anyway
+						callback.call(that, collection);
+					},
 					'type' : 'GET'
 			 	});
 			},
