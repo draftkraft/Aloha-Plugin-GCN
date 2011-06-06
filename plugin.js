@@ -1175,17 +1175,22 @@ GENTICS.Aloha.GCN._savePage = function(data) {
 		// go through all blocks, find the magic link blocks and add as tags to the
 		jQuery.each(this.settings.blocks, function(index, block) {
 			if (that.isMagicLinkBlock(block)) {
+				
+				// Use fileId 0 if the block.data.url / fileurl value is invalid
+				var pageId = block.data.url === "" ? 0 : block.data.url ; 
+				var fileId = block.data.fileurl === "" ? 0 : block.data.fileurl;
+				
 				requestBody.page.tags[block.tagname] = {
 					'name' : block.tagname,
 					'active' : true,
 					'properties' : {
 						'url' : {
 							'type' : 'PAGE',
-							'pageId' : block.data.url
+							'pageId' : pageId
 						},
 						'fileurl' : {
 							'type' : 'FILE',
-							'fileId' : block.data.fileurl
+							'fileId' : fileId
 						},
 						'text' : {
 							'type' : 'STRING',
