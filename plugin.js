@@ -1936,11 +1936,15 @@ GENTICS.Aloha.GCN.handleBlock = function(data, insert) {
 		// insert at current cursor position
 		var selection = GENTICS.Aloha.Selection.getRangeObject();
 		if (!selection.isCollapsed()) {
-			GENTICS.Aloha.Markup.removeSelectedMarkup();
+			GENTICS.Utils.Dom.removeRange(selection);
+			selection.select();
 		}
 		var limit = selection.getCommonAncestorContainer();
-		if (!GENTICS.Utils.Dom.insertIntoDOM(jQuery(data.content), GENTICS.Aloha.Selection.getRangeObject(), limit ? jQuery(limit) : null, false, true)) {
+		if (!GENTICS.Utils.Dom.insertIntoDOM(jQuery(data.content), selection, limit ? jQuery(limit) : null, false, true)) {
 			this.log('error', 'Could not insert new tag');
+		} else {
+			selection.clearCaches();
+			selection.select();
 		}
 	}
 
