@@ -190,7 +190,11 @@ GENTICS.Aloha.GCN.init = function () {
 					'do' : 14004,
 					'MENU_LAYER' : 0,
 					'ass_pre_flapped' : 0,
-					'aloha' : true
+					'aloha' : true,
+					//passing the page id when loading the menu ensures
+					//that the menu-actions will operate on the correct
+					//page.
+					'PAGE_ID' : that.settings.id,
 				},
 				'noCache': true
 			});
@@ -522,8 +526,8 @@ GENTICS.Aloha.GCN.init = function () {
 			href: '/CNPortletapp/alohapage?realid=' + GENTICS.Aloha.settings.plugins['com.gentics.aloha.plugins.GCN'].id +	
 			'&language=' + GENTICS.Aloha.settings.plugins['com.gentics.aloha.plugins.GCN'].languageid + 
 			'&sid=' + GENTICS.Aloha.settings.plugins['com.gentics.aloha.plugins.GCN'].sid +
-			'&real=edit',
-			icon: "?do=11&module=system&img=edit.png",
+			'&real=' + (GENTICS.Aloha.settings.readonly ? 'view' : 'edit'),
+			icon: (GENTICS.Aloha.settings.readonly ? '?do=11&module=content&img=doc.gif' : '?do=11&module=system&img=edit.png'),
 			aloha: true
 		});
 	}
