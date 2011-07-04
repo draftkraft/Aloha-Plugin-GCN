@@ -194,7 +194,7 @@ GENTICS.Aloha.GCN.init = function () {
 					//passing the page id when loading the menu ensures
 					//that the menu-actions will operate on the correct
 					//page.
-					'PAGE_ID' : that.settings.id,
+					'PAGE_ID' : that.settings.id
 				},
 				'noCache': true
 			});
